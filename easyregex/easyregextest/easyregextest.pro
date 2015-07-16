@@ -15,5 +15,11 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += tst_EasyregextestTest.cpp
+SOURCES += tst_EasyregextestTest.cpp \
+    ../easyregexdemo/EasyRegex.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+HEADERS += \
+    ../easyregexdemo/EasyRegex.h
+
+INCLUDEPATH += ../easyregexdemo
