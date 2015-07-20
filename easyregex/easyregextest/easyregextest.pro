@@ -16,10 +16,10 @@ TEMPLATE = app
 
 
 SOURCES += tst_EasyregextestTest.cpp \
-    ../easyregexdemo/EasyRegex.cpp
+    EasyRegex.cpp
+
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
-    ../easyregexdemo/EasyRegex.h
+    EasyRegex.h
 
-INCLUDEPATH += ../easyregexdemo

@@ -10,7 +10,7 @@ EasyRegex::EasyRegex(std::string pattern):
    thePattern(pattern),
    theErrorFlag(true),
    theErrorMsg("Need to call match first"),
-   theRegexFlags(REG_EXTENDED),
+   theRegexFlags( REG_EXTENDED | REG_NEWLINE),
    theMaxMatches(20)
 {
    // Don't do anything here, do everything in match
@@ -21,14 +21,11 @@ bool EasyRegex::match(std::string haystack, bool* error)
 {
    // Reset members for new match
    theCapturedTexts.clear();
+   theEntireMatch.clear();
    theErrorFlag = false;
    theErrorMsg = "";
 
    regex_t regexPatternBuffer;
-
-
-
-
    int compilationStatus = regcomp(&regexPatternBuffer, thePattern.c_str(), theRegexFlags);
 
    if (compilationStatus)
@@ -37,10 +34,8 @@ bool EasyRegex::match(std::string haystack, bool* error)
       char errBuf[ERROR_MSG_MAX_LEN];
       regerror(compilationStatus, &regexPatternBuffer, errBuf, ERROR_MSG_MAX_LEN);
 
-      std::ostringstream oss;
-      oss << "Error during regex compilation: ";
-      oss << errBuf;
-      theErrorMsg = oss.str();
+      theErrorMsg = "Error during regex compilation: ";
+      theErrorMsg += errBuf;
 
       theErrorFlag = true;
 
@@ -67,7 +62,6 @@ bool EasyRegex::match(std::string haystack, bool* error)
          if ( (matchPositions[i].rm_so == -1) ||
               (matchPositions[i].rm_eo == -1) )
          {
-            std::cout << "End of matching at" << i << std::endl;
             break;
          }
 
@@ -85,11 +79,12 @@ bool EasyRegex::match(std::string haystack, bool* error)
       }
    }
 
+   if (error)
+   {
+      *error = false;
+   }
+
    delete[] matchPositions;
-
-
-
-
    return retVal;
 }
 
@@ -98,10 +93,9 @@ int EasyRegex::captureCount()
    return theCapturedTexts.size();
 }
 
-std::string EasyRegex::getCapture(int index)
+std::string EasyRegex::getCapture(unsigned int index)
 {
-   if ( (index < 0) ||
-        (index >= theCapturedTexts.size()) )
+   if ( index >= theCapturedTexts.size() )
    {
       return "";
    }
@@ -132,4 +126,9 @@ std::string EasyRegex::getEntireMatch()
 void EasyRegex::setMaxNumberOfMatches(int max)
 {
    theMaxMatches = max;
+}
+
+void EasyRegex::setPattern(std::string pattern)
+{
+   thePattern = pattern;
 }
