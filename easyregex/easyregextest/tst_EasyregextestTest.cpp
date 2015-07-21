@@ -3,8 +3,6 @@
 #include <QString>
 #include "EasyRegex.h"
 
-
-
 class EasyregextestTest : public QObject
 {
    Q_OBJECT

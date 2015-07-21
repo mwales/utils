@@ -4,8 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    EasyRegex.cpp
+    ../src/EasyRegex.cpp
 
 HEADERS += \
-    EasyRegex.h
+    ../src/EasyRegex.h
+
+INCLUDEPATH += ../src
 
