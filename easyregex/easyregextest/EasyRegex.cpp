@@ -14,8 +14,13 @@ EasyRegex::EasyRegex(std::string pattern):
    theMaxMatches(20)
 {
    // Don't do anything here, do everything in match
+   theMatchPositions = new regmatch_t[theMaxMatches];
 }
 
+EasyRegex::~EasyRegex()
+{
+   delete[] theMatchPositions;
+}
 
 bool EasyRegex::match(std::string haystack, bool* error)
 {
@@ -48,10 +53,14 @@ bool EasyRegex::match(std::string haystack, bool* error)
       regfree(&regexPatternBuffer);
       return false;
    }
-   regmatch_t* matchPositions = new regmatch_t[theMaxMatches];
 
-   int matchStatus = regexec(&regexPatternBuffer, haystack.c_str(), theMaxMatches, matchPositions, 0);
+   // Errors can only occur during compilation
+   if (error)
+   {
+      *error = false;
+   }
 
+   int matchStatus = regexec(&regexPatternBuffer, haystack.c_str(), theMaxMatches, theMatchPositions, 0);
    bool retVal = (matchStatus == 0);
 
    // If match worked, process all the matched texts
@@ -59,32 +68,27 @@ bool EasyRegex::match(std::string haystack, bool* error)
    {
       for(int i = 0; i < theMaxMatches; i++)
       {
-         if ( (matchPositions[i].rm_so == -1) ||
-              (matchPositions[i].rm_eo == -1) )
+         if ( (theMatchPositions[i].rm_so == -1) ||
+              (theMatchPositions[i].rm_eo == -1) )
          {
             break;
          }
 
-         int numChars = matchPositions[i].rm_eo - matchPositions[i].rm_so;
+         int numChars = theMatchPositions[i].rm_eo - theMatchPositions[i].rm_so;
 
          if (i == 0)
          {
             // Special case, the first match
-            theEntireMatch = haystack.substr(matchPositions[i].rm_so, numChars);
+            theEntireMatch = haystack.substr(theMatchPositions[i].rm_so, numChars);
          }
          else
          {
-            theCapturedTexts.push_back(haystack.substr(matchPositions[i].rm_so, numChars));
+            theCapturedTexts.push_back(haystack.substr(theMatchPositions[i].rm_so, numChars));
          }
       }
    }
 
-   if (error)
-   {
-      *error = false;
-   }
-
-   delete[] matchPositions;
+   regfree(&regexPatternBuffer);
    return retVal;
 }
 
@@ -126,6 +130,10 @@ std::string EasyRegex::getEntireMatch()
 void EasyRegex::setMaxNumberOfMatches(int max)
 {
    theMaxMatches = max;
+
+   // Create a new array to store matches
+   delete[] theMatchPositions;
+   theMatchPositions = new regmatch_t[theMaxMatches];
 }
 
 void EasyRegex::setPattern(std::string pattern)

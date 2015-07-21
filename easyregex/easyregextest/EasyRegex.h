@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <regex.h>
 
 /**
  * Class to simplify usage of POSIX regular expressions.  The regular expression library is configured with the
@@ -19,6 +20,9 @@ public:
     * @param pattern Regular expression to match with
     */
    EasyRegex(std::string pattern);
+
+   /// Destructor cleans up memory used by matching offsets array
+   ~EasyRegex();
 
    /**
     * Performs the regex operation
@@ -86,6 +90,8 @@ protected:
    int theMaxMatches;
 
    std::string theEntireMatch;
+
+   regmatch_t* theMatchPositions;
 };
 
 #endif // EASYREGEX_H
