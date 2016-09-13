@@ -5,6 +5,46 @@
 #include <vector>
 #include <iostream>
 #include <string.h>
+#include <stdlib.h>
+
+std::map<uint32_t, std::string> getSectionNames(FILE* f,
+                                         struct Elf32_Ehdr const & elfHeader)
+{
+   struct Elf32_SectionHeader stringSectionHdr;
+
+   uint32_t stringSectionLocation = elfHeader.e_shoff + elfHeader.e_shstrndx * elfHeader.e_shentsize;
+   // printf("String section @ 0x%08x\n", stringSectionLocation);
+
+   if (!readFile(f, stringSectionLocation, sizeof(struct Elf32_SectionHeader), (uint8_t*) &stringSectionHdr))
+   {
+      // printf("Failed to read the header names section of the ELF\n");
+      return std::map<uint32_t, std::string>();
+   }
+
+   int numSections = elfHeader.e_shnum;
+
+   uint32_t nameDataLocation = stringSectionHdr.sh_offset;
+   uint32_t nameDataSize     = stringSectionHdr.sh_size;
+
+   char* nameData = new char[stringSectionHdr.sh_size];
+   uint32_t strIndexOffset = 0;
+   readFile(f, nameDataLocation, nameDataSize, (uint8_t*) nameData);
+
+   // printf("Going to read section strings at 0x%08x\n", nameDataLocation);
+
+   std::map<uint32_t, std::string> sectionNames;
+   for(int i = 0; i < numSections; i++)
+   {
+      std::string secName(nameData + strIndexOffset);
+      sectionNames[strIndexOffset]=secName;
+      strIndexOffset += secName.length() + 1;
+
+      //printf("Just added section name %s to the list of sections\n", secName.c_str());
+   }
+
+   delete[] nameData;
+   return sectionNames;
+}
 
 void printSectionInfo(FILE* f,
                        struct Elf32_Ehdr const & elfHeader,
@@ -57,36 +97,30 @@ void printSectionInfo(FILE* f,
 
 }
 
-void printElfInfo(struct Elf32_Ehdr const & elfHeader, FILE* f)
+void printElfInfo(FILE* f)
 {
-   char const * elfType;
-   switch(elfHeader.e_type)
+   struct Elf32_Ehdr elfHeader;
+
+   if (!readElfHeader(f, &elfHeader))
    {
-      case 0:
-         elfType = "None";
-         break;
-
-      case 1:
-         elfType = "Relocatable File";
-         break;
-
-      case 2:
-         elfType = "Executable File";
-         break;
-
-      case 3:
-         elfType = "Shared Object File";
-         break;
-
-      case 4:
-         elfType = "Core File";
-         break;
-
-      default:
-         elfType = "Unknown or Processor Specifiec";
+      printf("Not an ELF\n");
+      return;
    }
 
-   printf("ELF Type = %s\n", elfType);
+   std::map<int, char const *> elfTypeMap;
+   elfTypeMap[0] = "None";
+   elfTypeMap[1] = "Relocatable File";
+   elfTypeMap[2] = "Executable File";
+   elfTypeMap[3] = "Shared Object File";
+   elfTypeMap[4] = "Core File";
+   if (elfTypeMap.find(elfHeader.e_type) != elfTypeMap.end())
+   {
+      printf("ELF Type = %s\n", elfTypeMap[elfHeader.e_type]);
+   }
+   else
+   {
+      printf("ELF Type = Unknown\n");
+   }
 
    std::map<int, char const *> machineMap;
    machineMap[3]   = "Intel 386";
@@ -129,6 +163,69 @@ void printElfInfo(struct Elf32_Ehdr const & elfHeader, FILE* f)
    }
 }
 
+bool readElfHeader(FILE* f, struct Elf32_Ehdr* header)
+{
+   struct Elf32_Ehdr elfHeader;
+
+   if (!readFile(f, 0, sizeof(struct Elf32_Ehdr), (uint8_t*) header))
+   {
+      printf("Failed to read ELF header.  File to small?\n");
+      return false;
+   }
+
+   // Verify the ELF
+   if ( header->e_ident[0] == 0x7f &&
+        header->e_ident[1] == 'E' &&
+        header->e_ident[2] == 'L' &&
+        header->e_ident[3] == 'F')
+   {
+      return true;
+   }
+   else
+   {
+      printf("ELF Header magic string invalid\n");
+      return false;
+   }
+}
+
+bool findFileOffset(uint32_t vma,
+                    FILE* f,
+                    uint32_t* fileOffset)
+{
+   struct Elf32_Ehdr elfHeader;
+
+   if (!readElfHeader(f, &elfHeader))
+   {
+      printf("Aborting, not an ELF\n");
+      return 1;
+   }
+
+   uint32_t sectionHeaderOffset = elfHeader.e_shoff;
+   for(int i = 0; i < elfHeader.e_shnum; i++)
+   {
+      struct Elf32_SectionHeader sec;
+      if(!readFile(f, sectionHeaderOffset, sizeof(struct Elf32_SectionHeader), (uint8_t*) &sec))
+      {
+         printf("Failed attempting to read section header %d\n", i);
+         return false;
+      }
+
+      uint32_t endVmaOfSection = sec.sh_addr + sec.sh_size;
+      if ((vma >= sec.sh_addr) && (vma <= endVmaOfSection))
+      {
+         // This is the section the virtual memory address points to
+         uint32_t sectionOffset = vma - sec.sh_addr;
+         *fileOffset = sec.sh_offset + sectionOffset;
+         return true;
+      }
+
+      sectionHeaderOffset += elfHeader.e_shentsize;
+   }
+
+   printf("No sections contain the VMA 0x%08x\n", vma);
+   return false;
+}
+
 int main(int argc, char** argv)
 {
    if (argc != 4)
@@ -149,9 +246,13 @@ int main(int argc, char** argv)
 
    struct Elf32_Ehdr elfHeader;
 
-   fread(&elfHeader, sizeof(Elf32_Ehdr), 1, fileToPatch);
+   if (!readElfHeader(fileToPatch, &elfHeader))
+   {
+      printf("Aborting, not an ELF\n");
+      return 1;
+   }
 
-   printElfInfo(elfHeader, fileToPatch);
+   printElfInfo(fileToPatch);
 
    /* // ELF Header Debug
    printf("Type                             = 0x%08x\n", elfHeader.e_type);
@@ -168,6 +269,26 @@ int main(int argc, char** argv)
    printf("Number of Section Header Entries = 0x%08x\n", elfHeader.e_shnum);
    printf("String Index                     = 0x%08x\n", elfHeader.e_shstrndx);
    */
+
+   uint32_t startAddress;
+   if (argv[2][0] == '0' && argv[2][1] == 'x')
+   {
+      // Address is in hexadecimal
+      startAddress = strtoul(argv[2], NULL, 16);
+   }
+   else
+   {
+      startAddress = strtoul(argv[2], NULL, 10);
+   }
+
+   uint32_t patchFileOffset = 0;
+   if (!findFileOffset(startAddress, fileToPatch, &patchFileOffset))
+   {
+      printf("Couldn't find valid section / file offset for VMA 0x%08x\n", startAddress);
+      return 1;
+   }
+
+   printf("Virtual Address 0x%08x is at file offset 0x%08x\n", startAddress, patchFileOffset);
 
 
 
@@ -231,41 +352,4 @@ std::string readSectionName(FILE* f,
    return retVal;
 }
 
-std::map<uint32_t, std::string> getSectionNames(FILE* f,
-                                         struct Elf32_Ehdr const & elfHeader)
-{
-   struct Elf32_SectionHeader stringSectionHdr;
 
-   uint32_t stringSectionLocation = elfHeader.e_shoff + elfHeader.e_shstrndx * elfHeader.e_shentsize;
-   // printf("String section @ 0x%08x\n", stringSectionLocation);
-
-   if (!readFile(f, stringSectionLocation, sizeof(struct Elf32_SectionHeader), (uint8_t*) &stringSectionHdr))
-   {
-      // printf("Failed to read the header names section of the ELF\n");
-      return std::map<uint32_t, std::string>();
-   }
-
-   int numSections = elfHeader.e_shnum;
-
-   uint32_t nameDataLocation = stringSectionHdr.sh_offset;
-   uint32_t nameDataSize     = stringSectionHdr.sh_size;
-
-   char* nameData = new char[stringSectionHdr.sh_size];
-   uint32_t strIndexOffset = 0;
-   readFile(f, nameDataLocation, nameDataSize, (uint8_t*) nameData);
-
-   // printf("Going to read section strings at 0x%08x\n", nameDataLocation);
-
-   std::map<uint32_t, std::string> sectionNames;
-   for(int i = 0; i < numSections; i++)
-   {
-      std::string secName(nameData + strIndexOffset);
-      sectionNames[strIndexOffset]=secName;
-      strIndexOffset += secName.length() + 1;
-
-      //printf("Just added section name %s to the list of sections\n", secName.c_str());
-   }
-
-   delete[] nameData;
-   return sectionNames;
-}

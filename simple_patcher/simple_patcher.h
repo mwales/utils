@@ -45,7 +45,7 @@ struct Elf32_SectionHeader
 };
 
 
-void printElfInfo(struct Elf32_Ehdr const & elfHeader, FILE* f);
+void printElfInfo(FILE* f);
 
 void printSectionInfo(FILE* file,
                        struct Elf32_Ehdr const & elfHeader,
@@ -64,6 +64,12 @@ bool writeFile(FILE* f,
 std::string readSectionName(FILE* f,
                             struct Elf32_Ehdr const & elfHeader,
                             int i);
+
+bool readElfHeader(FILE* f, struct Elf32_Ehdr* header);
+
+bool findFileOffset(uint32_t vma,
+                    FILE* f,
+                    uint32_t* fileOffset);
 
 /**
  * Returns a map of the section names.  The key to the map is the index that the other headers
