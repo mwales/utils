@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <strings.h>
 
 std::map<uint32_t, std::string> getSectionNames(FILE* f,
                                          struct Elf32_Ehdr const & elfHeader)
@@ -228,15 +230,19 @@ bool findFileOffset(uint32_t vma,
 
 int main(int argc, char** argv)
 {
-   if (argc != 4)
+   if (argc != 5)
    {
-      printf("Usage: %s elf_file VMA_Start NumBytes\n", argv[0]);
-      printf(" Then write in the patch bytes to stdin\n");
+      printf("Usage: %s elf_file VMA_Start NumBytes PatchBytesHex\n", argv[0]);
       printf(" All bytes after the patch will be NOPed until NumBytes reached\n");
       return 1;
    }
 
-   FILE* fileToPatch = fopen(argv[1], "rw");
+   char const * filenameArg   = argv[1];
+   char const * vmaAddressArg = argv[2];
+   char const * numBytesArg   = argv[3];
+   char const * patchBytesArg = argv[4];
+
+   FILE* fileToPatch = fopen(filenameArg, "r+");
 
    if (fileToPatch == NULL)
    {
@@ -271,14 +277,14 @@ int main(int argc, char** argv)
    */
 
    uint32_t startAddress;
-   if (argv[2][0] == '0' && argv[2][1] == 'x')
+   if (vmaAddressArg[0] == '0' && vmaAddressArg[1] == 'x')
    {
       // Address is in hexadecimal
-      startAddress = strtoul(argv[2], NULL, 16);
+      startAddress = strtoul(vmaAddressArg, NULL, 16);
    }
    else
    {
-      startAddress = strtoul(argv[2], NULL, 10);
+      startAddress = strtoul(vmaAddressArg, NULL, 10);
    }
 
    uint32_t patchFileOffset = 0;
@@ -290,8 +296,48 @@ int main(int argc, char** argv)
 
    printf("Virtual Address 0x%08x is at file offset 0x%08x\n", startAddress, patchFileOffset);
 
+   uint32_t numBytes;
+   if (numBytesArg[0] == '0' && numBytesArg[1] == 'x')
+   {
+      // Number of bytes is in hexadecimal
+      numBytes = strtoul(numBytesArg, NULL, 16);
+   }
+   else
+   {
+      numBytes = strtoul(numBytesArg, NULL, 10);
+   }
 
+   if (strlen(patchBytesArg) % 2 != 0)
+   {
+      printf("Patch bytes must be an even number of hexadecimal characters\n");
+      return 1;
+   }
 
+   uint8_t* patchData = new uint8_t[numBytes];
+   for(int i = 0; i < numBytes; i++)
+   {
+      // NOP the entire buffer
+      patchData[i] = 0x90;
+   }
+
+   for(int i = 0; i < strlen(patchBytesArg) - 1; i += 2)
+   {
+      char hexCode[3];
+      hexCode[0] = patchBytesArg[i];
+      hexCode[1] = patchBytesArg[i+1];
+      hexCode[2] = 0;
+
+      patchData[i/2] = strtoul(hexCode, 0, 16);
+   }
+
+   printf("Patching!\n");
+   if (!writeFile(fileToPatch , patchFileOffset, numBytes, patchData))
+   {
+      printf("Error while writing the patch data into the file\n");
+      return 1;
+   }
+
+   printf("Patch Success\n");
    fclose(fileToPatch);
 
    return 0;
@@ -322,7 +368,19 @@ bool writeFile(FILE* f,
                uint32_t length,
                uint8_t* buffer)
 {
-   return false;
+   if (fseek(f, offset, SEEK_SET))
+   {
+      printf("Seek failure!\n");
+      return false;
+   }
+
+   if (1 != fwrite(buffer, length, 1, f))
+   {
+      printf("Error calling fwrite! (%s)\n", strerror(errno));
+      return false;
+   }
+
+   return true;
 }
 
 std::string readSectionName(FILE* f,
