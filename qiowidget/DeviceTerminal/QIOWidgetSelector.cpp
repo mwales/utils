@@ -8,7 +8,7 @@ const QString SERIAL_PORT = "Serial Port";
 const QString BLUETOOTH   = "Bluetooth";
 const QString TCP_SOCKET  = "TCP Socket";
 
-MultiWidget::MultiWidget(QWidget *parent) : QWidget(parent)
+QIOWidgetSelector::QIOWidgetSelector(QWidget *parent) : QWidget(parent)
 {
 
     QHBoxLayout* hbLayout = new QHBoxLayout(this);
@@ -25,8 +25,8 @@ MultiWidget::MultiWidget(QWidget *parent) : QWidget(parent)
     hbLayout->addWidget(theLabel);
     hbLayout->addWidget(theButton);
 
-    theTcpWidget = new TcpDestinationWidget(this);
-    theBtWidget = new BluetoothServiceWidget(this);
+    theTcpWidget = new TcpConfigWidget(this);
+    theBtWidget = new BluetoothConfigWidget(this);
     theSerialWidget = new SerialConfigWidget(this);
 
     theWidgetStack = new QStackedWidget(this);

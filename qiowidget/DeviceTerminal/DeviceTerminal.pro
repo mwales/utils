@@ -14,17 +14,17 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         MainWindow.cpp \
-    BluetoothServiceWidget.cpp \
+    BluetoothConfigWidget.cpp \
     QIOWidget.cpp \
     SerialConfigWidget.cpp \
-    TcpDestinationWidget.cpp \
+    TcpConfigWidget.cpp \
     QIOWidgetSelector.cpp
 
 HEADERS  += MainWindow.h \
-    BluetoothServiceWidget.h \
+    BluetoothConfigWidget.h \
     QIOWidget.h \
     SerialConfigWidget.h \
-    TcpDestinationWidget.h \
+    TcpConfigWidget.h \
     QIOWidgetSelector.h
 
 FORMS    += MainWindow.ui

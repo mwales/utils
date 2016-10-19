@@ -8,15 +8,15 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QStackedWidget>
-#include "TcpDestinationWidget.h"
-#include "BluetoothServiceWidget.h"
+#include "TcpConfigWidget.h"
+#include "BluetoothConfigWidget.h"
 #include "SerialConfigWidget.h"
 
-class MultiWidget : public QWidget
+class QIOWidgetSelector : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MultiWidget(QWidget *parent = 0);
+    explicit QIOWidgetSelector(QWidget *parent = 0);
 
 signals:
 
@@ -44,9 +44,9 @@ private:
     QLineEdit* theTcpHostname;
     QSpinBox* thePortNumber;
 
-    TcpDestinationWidget* theTcpWidget;
+    TcpConfigWidget* theTcpWidget;
 
-    BluetoothServiceWidget* theBtWidget;
+    BluetoothConfigWidget* theBtWidget;
 
     SerialConfigWidget* theSerialWidget;
 

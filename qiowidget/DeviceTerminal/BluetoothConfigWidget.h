@@ -5,18 +5,18 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QLabel>
-class BluetoothServiceWidget : public QIOWidget
+class BluetoothConfigWidget : public QIOWidget
 {
 
     Q_OBJECT
 public:
-    BluetoothServiceWidget(QWidget *parent = 0);
+    BluetoothConfigWidget(QWidget *parent = 0);
 
-    virtual QIODevice* getQIoDevice();
+    virtual QIODevice* GetQIoDevice();
 
 public slots:
 
-    virtual void connect();
+    virtual void ConnectToDevice();
 
 protected:
 

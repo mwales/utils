@@ -11,11 +11,11 @@ class SerialConfigWidget : public QIOWidget
 public:
     SerialConfigWidget(QWidget *parent = 0);
 
-    virtual QIODevice* getQIoDevice();
+    virtual QIODevice* GetQIoDevice();
 
 public slots:
 
-    virtual void connect();
+    virtual void ConnectToDevice();
 
 protected:
 

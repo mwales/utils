@@ -1,10 +1,10 @@
-#include "BluetoothServiceWidget.h"
+#include "BluetoothConfigWidget.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QtDebug>
 
-BluetoothServiceWidget::BluetoothServiceWidget(QWidget *parent):
+BluetoothConfigWidget::BluetoothConfigWidget(QWidget *parent):
     QIOWidget(parent),
     theScanButton("Scan"),
     theBtStatus("Bluetooth Status: ")
@@ -21,12 +21,12 @@ BluetoothServiceWidget::BluetoothServiceWidget(QWidget *parent):
     setLayout(largestContainer);
 }
 
-QIODevice* BluetoothServiceWidget::getQIoDevice()
+QIODevice* BluetoothConfigWidget::GetQIoDevice()
 {
 
 }
 
-void BluetoothServiceWidget::connect()
+void BluetoothConfigWidget::ConnectToDevice()
 {
 
 }

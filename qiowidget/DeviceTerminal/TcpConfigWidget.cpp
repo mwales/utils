@@ -1,10 +1,10 @@
-#include "TcpDestinationWidget.h"
+#include "TcpConfigWidget.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QtDebug>
 
-TcpDestinationWidget::TcpDestinationWidget(QWidget *parent) :
+TcpConfigWidget::TcpConfigWidget(QWidget *parent) :
     QIOWidget(parent)
 {
     QHBoxLayout* largestContainer = new QHBoxLayout(this);
@@ -25,33 +25,33 @@ TcpDestinationWidget::TcpDestinationWidget(QWidget *parent) :
 }
 
 
-void TcpDestinationWidget::setPortNumber(int pn)
+void TcpConfigWidget::SetPortNumber(int pn)
 {
     thePortNumber.setText(QString::number(pn));
 }
 
-void TcpDestinationWidget::setHostname(QString hn)
+void TcpConfigWidget::SetHostname(QString hn)
 {
     theHostname.setText(hn);
 }
 
-int TcpDestinationWidget::getPortNumber() const
+int TcpConfigWidget::GetPortNumber() const
 {
     return thePortNumber.text().toInt();
 }
 
 
-QString TcpDestinationWidget::getHostname() const
+QString TcpConfigWidget::GetHostname() const
 {
     return theHostname.text();
 }
 
-QIODevice* TcpDestinationWidget::getQIoDevice()
+QIODevice* TcpConfigWidget::GetQIoDevice()
 {
 
 }
 
-void TcpDestinationWidget::connect()
+void TcpConfigWidget::ConnectToDevice()
 {
 
 }

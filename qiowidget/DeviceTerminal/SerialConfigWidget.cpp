@@ -9,12 +9,12 @@ SerialConfigWidget::SerialConfigWidget(QWidget *parent):
     box->addWidget(&theBaudRateCB);
 }
 
-QIODevice* SerialConfigWidget::getQIoDevice()
+QIODevice* SerialConfigWidget::GetQIoDevice()
 {
     return nullptr;
 }
 
-void SerialConfigWidget::connect()
+void SerialConfigWidget::ConnectToDevice()
 {
 
 }
