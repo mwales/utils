@@ -13,7 +13,10 @@ BluetoothConfigWidget::BluetoothConfigWidget(QWidget *parent):
 
     QHBoxLayout* topRow = new QHBoxLayout(this);
     topRow->addWidget(&theServiceSelector);
+
+    theScanButton.setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     topRow->addWidget(&theScanButton);
+
     largestContainer->addLayout(topRow);
 
     largestContainer->addWidget(&theBtStatus);
@@ -21,12 +24,12 @@ BluetoothConfigWidget::BluetoothConfigWidget(QWidget *parent):
     setLayout(largestContainer);
 }
 
-QIODevice* BluetoothConfigWidget::GetQIoDevice()
+QIODevice* BluetoothConfigWidget::getQIoDevice()
 {
 
 }
 
-void BluetoothConfigWidget::ConnectToDevice()
+void BluetoothConfigWidget::connectToDevice()
 {
 
 }

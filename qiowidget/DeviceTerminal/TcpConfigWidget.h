@@ -23,12 +23,12 @@ public:
     int GetPortNumber() const;
     QString GetHostname() const;
 
-    virtual QIODevice* GetQIoDevice();
+    virtual QIODevice* getQIoDevice();
 signals:
 
 public slots:
 
-    virtual void ConnectToDevice();
+    virtual void connectToDevice();
 
 protected:
     QLineEdit theHostname;

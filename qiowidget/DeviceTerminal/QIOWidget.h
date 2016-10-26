@@ -13,13 +13,13 @@ public:
 
 
 
-    virtual QIODevice* GetQIoDevice() = 0;
+    virtual QIODevice* getQIoDevice() = 0;
 
 signals:
 
 public slots:
 
-    virtual void ConnectToDevice() = 0;
+    virtual void connectToDevice() = 0;
 };
 
 #endif // QIOWIDGET_H

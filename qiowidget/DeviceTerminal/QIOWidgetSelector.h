@@ -22,6 +22,10 @@ signals:
 
 public slots:
 
+private slots:
+
+    void indexChanged(int index);
+
 private:
 
 
@@ -32,25 +36,13 @@ private:
 
     QComboBox* theDeviceTypeCB;
 
-    // Serial Port Controls
-    QComboBox* theSerialPortCB;
-    QComboBox* theSerialBaudRateCB;
 
-    // Bluetooth Controls
-    QComboBox* theRfcommCB;
-    QPushButton* theBluetoothScanButton;
-
-    // TCP Controls
-    QLineEdit* theTcpHostname;
-    QSpinBox* thePortNumber;
 
     TcpConfigWidget* theTcpWidget;
 
     BluetoothConfigWidget* theBtWidget;
 
     SerialConfigWidget* theSerialWidget;
-
-    QStackedWidget* theWidgetStack;
 };
 
 #endif // MULTIWIDGET_H

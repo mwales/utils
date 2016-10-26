@@ -3,6 +3,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QSizePolicy>
+#include <QtDebug>
 
 const QString SERIAL_PORT = "Serial Port";
 const QString BLUETOOTH   = "Bluetooth";
@@ -12,32 +14,62 @@ QIOWidgetSelector::QIOWidgetSelector(QWidget *parent) : QWidget(parent)
 {
 
     QHBoxLayout* hbLayout = new QHBoxLayout(this);
-    theLabel = new QLabel(this);
-    theButton = new QPushButton();
 
     theDeviceTypeCB = new QComboBox(this);
-    theDeviceTypeCB->addItem(SERIAL_PORT);
-    theDeviceTypeCB->addItem(BLUETOOTH);
     theDeviceTypeCB->addItem(TCP_SOCKET);
+    theDeviceTypeCB->addItem(BLUETOOTH);
+    theDeviceTypeCB->addItem(SERIAL_PORT);
+    theDeviceTypeCB->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     setLayout(hbLayout);
     hbLayout->addWidget(theDeviceTypeCB);
-    hbLayout->addWidget(theLabel);
-    hbLayout->addWidget(theButton);
 
-    theTcpWidget = new TcpConfigWidget(this);
-    theBtWidget = new BluetoothConfigWidget(this);
-    theSerialWidget = new SerialConfigWidget(this);
+    theTcpWidget = new TcpConfigWidget();
+    hbLayout->addWidget(theTcpWidget);
 
-    theWidgetStack = new QStackedWidget(this);
-    theWidgetStack->addWidget(theSerialWidget);
-    theWidgetStack->addWidget(theBtWidget);
-    theWidgetStack->addWidget(theTcpWidget);
+    theBtWidget = new BluetoothConfigWidget();
+    hbLayout->addWidget(theBtWidget);
+
+    theSerialWidget = new SerialConfigWidget();
+    hbLayout->addWidget(theSerialWidget);
 
     connect(theDeviceTypeCB,                SIGNAL(currentIndexChanged(int)),
-            theWidgetStack,                 SLOT(setCurrentIndex(int)));
+            this,                           SLOT(indexChanged(int)));
 
-    hbLayout->addWidget(theWidgetStack);
+    indexChanged(0);
+
 }
 
 
+void QIOWidgetSelector::indexChanged(int index)
+{
+    qDebug() << "Index changed to" << index;
+
+    if (index == 0)
+    {
+        theTcpWidget->show();
+    }
+    else
+    {
+        theTcpWidget->hide();
+    }
+
+    if (index == 1)
+    {
+        theBtWidget->show();
+    }
+    else
+    {
+        theBtWidget->hide();
+    }
+
+    if (index == 2)
+    {
+        theSerialWidget->show();
+    }
+    else
+    {
+        theSerialWidget->hide();
+    }
+
+}

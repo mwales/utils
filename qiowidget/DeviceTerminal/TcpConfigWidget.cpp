@@ -46,12 +46,12 @@ QString TcpConfigWidget::GetHostname() const
     return theHostname.text();
 }
 
-QIODevice* TcpConfigWidget::GetQIoDevice()
+QIODevice* TcpConfigWidget::getQIoDevice()
 {
 
 }
 
-void TcpConfigWidget::ConnectToDevice()
+void TcpConfigWidget::connectToDevice()
 {
 
 }
