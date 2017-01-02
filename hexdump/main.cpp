@@ -20,6 +20,15 @@ int main()
    printf("Numbers to stderr with ASCII:\n");
    hexDump(nums, sizeof(nums) / sizeof(unsigned char), stderr, true);
 
+   printf("Printable ASCII table:\n");
+   unsigned char asciiTable[0x100];
+   for(int i = 0; i < 0x100; i++)
+   {
+      asciiTable[i] = i;
+   }
+
+   hexDump(asciiTable, 0x100, stdout, true);
+
 
    return 0;
 }
