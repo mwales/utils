@@ -2,12 +2,14 @@
 #include <openssl/aes.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <string.h>
 
 //#define EASY_CRYPT_DEBUG
 
 #ifdef EASY_CRYPT_DEBUG
 
 #include <stdio.h>
+#include "../hexdump/hexdump.h"
 
 #define EC_DEBUG(...) printf(__VA_ARGS__)
 #else
@@ -21,11 +23,11 @@ uint32_t getCbcCipherTextSize(uint32_t plaintextLength)
    return blocksRequired * 16;
 }
 
-unsigned char* cbcCrypt(unsigned char * plaintext,
+unsigned char* cbcCrypt(unsigned char const * plaintext,
                         uint32_t plaintextLength,
                         int keyLength,
-                        unsigned char * key,
-                        unsigned char * iv)
+                        unsigned char const * key,
+                        unsigned char const * iv)
 {
    uint32_t ctSize = getCbcCipherTextSize(plaintextLength);
    int paddingByte = (ctSize - plaintextLength);
@@ -35,6 +37,9 @@ unsigned char* cbcCrypt(unsigned char * plaintext,
       EC_DEBUG("Invalid key length of %d\n", keyLength);
       return NULL;
    }
+
+   unsigned char ivCopy[0x10];
+   memcpy(ivCopy, iv, 0x10);
 
    unsigned char* cipherText    = new unsigned char[ctSize];
    unsigned char* ptWithPadding = new unsigned char[ctSize];
@@ -55,25 +60,82 @@ unsigned char* cbcCrypt(unsigned char * plaintext,
 
    AES_KEY aesContext;
    AES_set_encrypt_key(key, keyLength, &aesContext);
-   AES_cbc_encrypt(ptWithPadding, cipherText, ctSize, &aesContext, iv, AES_ENCRYPT);
+   AES_cbc_encrypt(ptWithPadding, cipherText, ctSize, &aesContext, ivCopy, AES_ENCRYPT);
 
-//    printf("Plaintext:\n");
-//    hexDump(buffer, numberOfBlocksReqd * 0x10);
-//    printf("Ciphertext:\n");
-//    hexDump(cipherText, numberOfBlocksReqd * 0x10);
+#ifdef EASY_CRYPT_DEBUG
+    printf("Plaintext:\n");
+    hexDump(ptWithPadding, ctSize);
+    printf("Ciphertext:\n");
+    hexDump(cipherText, ctSize);
+#endif
 
    delete[] ptWithPadding;
    return cipherText;
 }
 
-unsigned char* cbcDecrypt(unsigned char * ciphertext,
+unsigned char* cbcDecrypt(unsigned char const * ciphertext,
                           uint32_t ciphertextLength,
                           int keyLength,
-                          unsigned char * key,
-                          unsigned char * iv,
+                          unsigned char const * key,
+                          unsigned char const * iv,
+                          uint32_t* plaintextLength,
                           bool* paddingValid)
 {
+   if (ciphertextLength % 16 != 0)
+   {
+       EC_DEBUG("Ciphertext length of %d is invalid block size\n", ciphertextLength);
+       return NULL;
+   }
 
+   if ( (keyLength != 128) && (keyLength != 192) && (keyLength != 256))
+   {
+      EC_DEBUG("Invalid key length of %d\n", keyLength);
+      return NULL;
+   }
+
+   unsigned char* plaintext = new unsigned char[ciphertextLength];
+
+   unsigned char ivCopy[0x10];
+   memcpy(ivCopy, iv, 0x10);
+
+   AES_KEY aesContext;
+   AES_set_decrypt_key(key, keyLength, &aesContext);
+   AES_cbc_encrypt(ciphertext, plaintext, ciphertextLength, &aesContext, ivCopy, AES_DECRYPT);
+
+#ifdef EASY_CRYPT_DEBUG
+   printf("\nDecrypting Ciphertext:\n");
+   hexDump(ciphertext, ciphertextLength);
+
+   printf("Plaintext:\n");
+   hexDump(plaintext, ciphertextLength);
+#endif
+
+   // Truncate off the padding
+   int rxPaddingByte = plaintext[ciphertextLength - 1];
+   if (rxPaddingByte > 0x10)
+   {
+       EC_DEBUG("Plaintext had invalid padding byte(s)\n");
+       *paddingValid = false;
+       delete[] plaintext;
+       return NULL;
+   }
+
+   for(uint32_t paddingIndex = ciphertextLength - rxPaddingByte;
+       paddingIndex < ciphertextLength;
+       paddingIndex++)
+   {
+      if (plaintext[paddingIndex] != rxPaddingByte)
+      {
+         EC_DEBUG("Plaintext padding bytes inconsistent at byte 0x%02x, value is 0x%02x\n", paddingIndex, plaintext[paddingIndex]);
+         *paddingValid = false;
+         delete[] plaintext;
+         return NULL;
+      }
+   }
+
+   *plaintextLength = ciphertextLength - rxPaddingByte;
+   *paddingValid = true;
+   return plaintext;
 }
 
 

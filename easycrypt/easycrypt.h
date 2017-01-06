@@ -20,37 +20,43 @@
 uint32_t getCbcCipherTextSize(uint32_t plaintextLength);
 
 /**
- * Enrypts a single buffer of plaintext with AES in cipherblock chaining mode
+ * Enrypts a single buffer of plaintext with AES in cipherblock chaining mode.
+ *
+ * @note Ciphertext in CBC mode will be longer than plaintext due to required padding
  *
  * @param plaintext Buffer of plaintext data
  * @param plaintextLength The length of plaintext data that is to be encrypted
  * @param keyLength Should be 128, 192, or 256
  * @param key AES key to encrypt data with
  * @param iv 16-bytes of data for the CBC IV
- * @return NULL on failure, or a buffer to ciphertext data.  The buffer should be free() after use
+ * @return NULL on failure, or a buffer to ciphertext data.  The buffer should be delete[] after use
  */
-unsigned char* cbcCrypt(unsigned char * plaintext,
+unsigned char* cbcCrypt(unsigned char const * plaintext,
                         uint32_t plaintextLength,
                         int keyLength,
-                        unsigned char * key,
-                        unsigned char * iv);
+                        unsigned char const * key,
+                        unsigned char const * iv);
 
 /**
  * Decrypts a single buffer of ciphertext with AES in cipherblock chaining mode
+ *
+ * @note Plaintext data will be slightly smaller than the ciphertext data
  *
  * @param ciphertext Buffer of ciphertext data
  * @param ciphertextLength The length of plaintext data that is to be encrypted
  * @param keyLength Should be 128, 192, or 256
  * @param key AES key to encrypt data with
  * @param iv 16-bytes of data for the CBC IV
+ * @param[out] plaintextLength The length of the plaintext data (padding removed)
  * @param[out] paddingValid Returns true if the padding was valid3
- * @return NULL on failure, or a buffer to plaintext data.  The buffer should be free() after use
+ * @return NULL on failure, or a buffer to plaintext data.  The buffer should be delete[] after use
  */
-unsigned char* cbcDecrypt(unsigned char * ciphertext,
+unsigned char* cbcDecrypt(unsigned char const * ciphertext,
                           uint32_t ciphertextLength,
                           int keyLength,
-                          unsigned char * key,
-                          unsigned char * iv,
+                          unsigned char const * key,
+                          unsigned char const * iv,
+                          uint32_t* plaintextLength,
                           bool* paddingValid);
 
 enum ChecksumType {
