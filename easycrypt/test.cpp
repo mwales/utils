@@ -112,6 +112,31 @@ int main(int argc, char** argv)
       delete[] verify;
    }
 
+   int textlen = strlen( (char*) ALPHABET_STRING);
+   for(int keySize = 128; keySize <= 256; keySize += 64)
+   {
+      std::cout << "AES " << keySize << " CTR cipher mode encyption test" << std::endl;
+      std::cout << "Key:" << std::endl;
+      hexDump(aes256Key, keySize / 8);
+
+      unsigned char* ct = ctrEncrypt(ALPHABET_STRING, textlen, keySize, aes256Key, iv);
+
+      std::cout << "CT:" << std::endl;
+      hexDump(ct, textlen);
+
+//      unsigned char* verify = cbcDecrypt(ct, ctLength, keySize, aes256Key, iv, &ptLength, &paddingValid);
+
+//      std::cout << "Decryption verifiction with plaintext length = " << ptLength << ", and paddingValid=" << ( paddingValid ? "true" : "false") << std::endl;
+//      std::cout << "Verify Dump:" << std::endl;
+//      hexDump(verify, ptLength);
+
+//      std::cout << "Length compare = " << (ptLength == strlen((char*)ALPHABET_STRING) ? "VERIFIED" : "FAILED") << std::endl;
+//      std::cout << "Memory compare = " << (memcmp(verify, ALPHABET_STRING, ptLength) == 0 ? "VERIFIED" : "FAILED") << std::endl;
+
+      delete[] ct;
+      //delete[] verify;
+   }
+
 
 
    return 0;

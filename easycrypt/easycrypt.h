@@ -59,6 +59,25 @@ unsigned char* cbcDecrypt(unsigned char const * ciphertext,
                           uint32_t* plaintextLength,
                           bool* paddingValid);
 
+/**
+ * Enrypts a single buffer of plaintext with AES in counter (CTR) mode.
+ *
+ * @note Never reuse the same IV / nonce
+ *
+ * @param plaintext Buffer of plaintext data
+ * @param plaintextLength The length of plaintext data that is to be encrypted
+ * @param keyLength Should be 128, 192, or 256
+ * @param key AES key to encrypt data with
+ * @param iv Nonce.  16-bytes for counter.  Caller needs to increment this once for each block of data
+ *           encrypted
+ * @return NULL on failure, or a buffer to ciphertext data.  The buffer should be delete[] after use
+ */
+unsigned char* ctrEncrypt(unsigned char const * plaintext,
+                          uint32_t plaintextLength,
+                          int keyLength,
+                          unsigned char const * key,
+                          unsigned char const * iv);
+
 enum ChecksumType {
    CS_MD5,
    CS_SHA1,
