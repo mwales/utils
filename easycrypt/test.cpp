@@ -15,7 +15,9 @@
 // openssl enc -aes-128-cbc -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e -iv 000102030405060708090a0b0c0d0e0f
 // openssl enc -aes-192-cbc -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e20222426282a2c2e -iv 000102030405060708090a0b0c0d0e0f
 // openssl enc -aes-256-cbc -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e20222426282a2c2e30323436383a3c3e -iv 000102030405060708090a0b0c0d0e0f
-
+// openssl enc -aes-128-ctr -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e -iv 000102030405060708090a0b0c0d0e0f
+// openssl enc -aes-192-ctr -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e20222426282a2c2e -iv 000102030405060708090a0b0c0d0e0f
+// openssl enc -aes-256-ctr -in data.txt -out enc.txt -K 00020406080a0c0e10121416181a1c1e20222426282a2c2e30323436383a3c3e -iv 000102030405060708090a0b0c0d0e0f
 
 int main(int argc, char** argv)
 {
@@ -92,7 +94,7 @@ int main(int argc, char** argv)
       std::cout << "Key:" << std::endl;
       hexDump(aes256Key, keySize / 8);
 
-      unsigned char* ct = cbcCrypt(ALPHABET_STRING, strlen( (char*) ALPHABET_STRING), keySize, aes256Key, iv);
+      unsigned char* ct = cbcEncrypt(ALPHABET_STRING, strlen( (char*) ALPHABET_STRING), keySize, aes256Key, iv);
 
       std::cout << "CT:" << std::endl;
       hexDump(ct, ctLength);
@@ -124,17 +126,14 @@ int main(int argc, char** argv)
       std::cout << "CT:" << std::endl;
       hexDump(ct, textlen);
 
-//      unsigned char* verify = cbcDecrypt(ct, ctLength, keySize, aes256Key, iv, &ptLength, &paddingValid);
+      unsigned char* verify = ctrDecrypt(ct, textlen, keySize, aes256Key, iv);
 
-//      std::cout << "Decryption verifiction with plaintext length = " << ptLength << ", and paddingValid=" << ( paddingValid ? "true" : "false") << std::endl;
-//      std::cout << "Verify Dump:" << std::endl;
-//      hexDump(verify, ptLength);
+      hexDump(verify, textlen);
 
-//      std::cout << "Length compare = " << (ptLength == strlen((char*)ALPHABET_STRING) ? "VERIFIED" : "FAILED") << std::endl;
-//      std::cout << "Memory compare = " << (memcmp(verify, ALPHABET_STRING, ptLength) == 0 ? "VERIFIED" : "FAILED") << std::endl;
+      std::cout << "Memory compare = " << (memcmp(verify, ALPHABET_STRING, textlen) == 0 ? "VERIFIED" : "FAILED") << std::endl;
 
       delete[] ct;
-      //delete[] verify;
+      delete[] verify;
    }
 
 

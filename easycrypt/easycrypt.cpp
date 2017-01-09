@@ -24,7 +24,7 @@ uint32_t getCbcCipherTextSize(uint32_t plaintextLength)
    return blocksRequired * 16;
 }
 
-unsigned char* cbcCrypt(unsigned char const * plaintext,
+unsigned char* cbcEncrypt(unsigned char const * plaintext,
                         uint32_t plaintextLength,
                         int keyLength,
                         unsigned char const * key,
@@ -194,7 +194,7 @@ unsigned char* ctrEncrypt(unsigned char const * plaintext,
    if(1 != success)
    {
 
-      EC_DEBUG("Error when calling EVP encypt init");
+      EC_DEBUG("Error when calling EVP encrypt init");
       EVP_CIPHER_CTX_free(ctx);
       delete[] ciphertext;
       return NULL;
@@ -205,7 +205,7 @@ unsigned char* ctrEncrypt(unsigned char const * plaintext,
    // block ciphers that have to encrypt a whole block and you provide less than a block.
    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &outlen, plaintext, plaintextLength))
    {
-      EC_DEBUG("Error when calling EVP encypt update");
+      EC_DEBUG("Error when calling EVP encrypt update");
       EVP_CIPHER_CTX_free(ctx);
       delete[] ciphertext;
       return NULL;
@@ -219,6 +219,83 @@ unsigned char* ctrEncrypt(unsigned char const * plaintext,
    EVP_CIPHER_CTX_free(ctx);
 
    return ciphertext;
+}
+
+unsigned char* ctrDecrypt(unsigned char const * ciphertext,
+                          uint32_t ciphertextLength,
+                          int keyLength,
+                          unsigned char const * key,
+                          unsigned char const * iv)
+{
+   if ( (keyLength != 128) && (keyLength != 192) && (keyLength != 256))
+   {
+      EC_DEBUG("Invalid key length of %d\n", keyLength);
+      return NULL;
+   }
+
+   // The majority of this code came straight from the OpenSSL Wiki on EVP encryption
+   EVP_CIPHER_CTX *ctx;
+   unsigned char* plaintext = new unsigned char[ciphertextLength];
+
+   // We don't really need to use this because we are using CTR mode, but the EVP methods require it
+   int outlen;
+
+   /* Create and initialise the context */
+   ctx = EVP_CIPHER_CTX_new();
+   if(!ctx)
+   {
+      EC_DEBUG("Error creating a new EVP contenxt\n");
+      delete[] plaintext;
+      return NULL;
+   }
+
+   // Initialise the encryption operation. IMPORTANT - ensure you use a key and IV size
+   // appropriate for your cipher. The modes can be found on the man page for
+   // evp_encryptupdate
+
+   int success;
+   if (keyLength == 128)
+   {
+      success = EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
+   }
+   else if (keyLength == 192)
+   {
+      success = EVP_DecryptInit_ex(ctx, EVP_aes_192_ctr(), NULL, key, iv);
+   }
+   else
+   {
+      // AES 256 is left
+      success = EVP_DecryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
+   }
+
+   if(1 != success)
+   {
+
+      EC_DEBUG("Error when calling EVP decrypt init");
+      EVP_CIPHER_CTX_free(ctx);
+      delete[] plaintext;
+      return NULL;
+   }
+
+   // Provide the message to be encrypted, and obtain the encrypted output. EVP_EncryptUpdate
+   // can be called multiple times if necessary.  This method gets a little weird when using
+   // block ciphers that have to encrypt a whole block and you provide less than a block.
+   if(1 != EVP_DecryptUpdate(ctx, plaintext, &outlen, ciphertext, ciphertextLength))
+   {
+      EC_DEBUG("Error when calling EVP decrypt update");
+      EVP_CIPHER_CTX_free(ctx);
+      delete[] plaintext;
+      return NULL;
+   }
+
+   // Finalise the encryption. Further ciphertext bytes may be written at this stage.  This
+   // shouldn't do anything for CTR mode, but CBC mode would add padding bytes
+   // EVP_DecryptFinal_ex(ctx, ciphertext + outlen, &outlen);
+
+   /* Clean up */
+   EVP_CIPHER_CTX_free(ctx);
+
+   return plaintext;
 }
 
 

@@ -31,7 +31,7 @@ uint32_t getCbcCipherTextSize(uint32_t plaintextLength);
  * @param iv 16-bytes of data for the CBC IV
  * @return NULL on failure, or a buffer to ciphertext data.  The buffer should be delete[] after use
  */
-unsigned char* cbcCrypt(unsigned char const * plaintext,
+unsigned char* cbcEncrypt(unsigned char const * plaintext,
                         uint32_t plaintextLength,
                         int keyLength,
                         unsigned char const * key,
@@ -74,6 +74,22 @@ unsigned char* cbcDecrypt(unsigned char const * ciphertext,
  */
 unsigned char* ctrEncrypt(unsigned char const * plaintext,
                           uint32_t plaintextLength,
+                          int keyLength,
+                          unsigned char const * key,
+                          unsigned char const * iv);
+
+/**
+ * Decrypts a single buffer of ciphertext with AES in counter mode
+ *
+ * @param ciphertext Buffer of ciphertext data
+ * @param ciphertextLength The length of plaintext data that is to be encrypted
+ * @param keyLength Should be 128, 192, or 256
+ * @param key AES key to encrypt data with
+ * @param iv 16-bytes of data for the counter nonce
+ * @return NULL on failure, or a buffer to plaintext data.  The buffer should be delete[] after use
+ */
+unsigned char* ctrDecrypt(unsigned char const * ciphertext,
+                          uint32_t ciphertextLength,
                           int keyLength,
                           unsigned char const * key,
                           unsigned char const * iv);
