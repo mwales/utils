@@ -56,6 +56,12 @@ void hexDump(unsigned char const * const buffer, unsigned int bufferLen, FILE* f
             fprintf(fd, "   ");
          }
 
+         if ((i % 16) < 8)
+         {
+            // There is an extra space between byte 8 and 9 that must be accounted for
+            fprintf(fd, " ");
+         }
+
          fprintf(fd, " |%s|\n", asciiDump);
          strcpy(asciiDump, ASCII_BLANK);
       }

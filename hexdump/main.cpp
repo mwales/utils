@@ -20,6 +20,14 @@ int main()
    printf("Numbers to stderr with ASCII:\n");
    hexDump(nums, sizeof(nums) / sizeof(unsigned char), stderr, true);
 
+   // Verify columns alignment
+   unsigned char const * const columnTest = (unsigned char*) "12345678901234567890123456789012";
+   for(int i = 0; i <= 32; i++)
+   {
+      printf("Printing %d bytes of hex data:\n", i);
+      hexDump(columnTest, i);
+   }
+
    printf("Printable ASCII table:\n");
    unsigned char asciiTable[0x100];
    for(int i = 0; i < 0x100; i++)
