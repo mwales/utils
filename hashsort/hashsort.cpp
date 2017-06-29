@@ -7,7 +7,7 @@
 
 void printUsage()
 {
-   std::cerr << "Usage: hashsort [-f] [-h] < hashes_to_sort.md5" << std::endl;
+   std::cerr << "Usage: cat hashes_to_sort.md5 | ./hashsort [-f|n|h|u] < hashes_to_sort.md5 | tee sorted.md5" << std::endl;
    std::cerr << "  -f : sort hashes by filename" << std::endl;
    std::cerr << "  -h : sort hashes by hash" << std::endl;
    std::cerr << "  -n : print out non-uniques (will sort by hash too)" << std::endl;
@@ -49,7 +49,7 @@ void performMultiMapSort(std::vector<std::string> const & lines, std::string sor
    for(auto singleLine : lines)
    {
       size_t endOfHash = singleLine.find(' ');
-      bigMap.insert(std::make_pair(singleLine.substr(0, endOfHash), singleLine.substr(endOfHash + 1)));
+      bigMap.insert(std::make_pair(singleLine.substr(0, endOfHash), singleLine.substr(endOfHash + 2)));
    }
 
    std::string lastHash = "";
@@ -73,11 +73,11 @@ void performMultiMapSort(std::vector<std::string> const & lines, std::string sor
             if (thisHash == lastHash)
             {
                // Print it as a dupe
-               std::cout << "DUPE\t" << thisHash << "\t" << record.second << std::endl;
+               std::cout << "DUPE\t" << thisHash << "\t\"" << record.second << "\"" << std::endl;
             }
             else
             {
-               std::cout << "UNIQ\t" << thisHash << "\t" << record.second << std::endl;
+               std::cout << "UNIQ\t" << thisHash << "\t\"" << record.second << "\"" << std::endl;
             }
 
             lastHash = thisHash;
