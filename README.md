@@ -17,6 +17,9 @@ based on filename.
 hexdump:  Easy to include and fancy hexadecimal dumping tool.  I'm not wasting
 time reinventing this thing anymore just to print out a buffer of data.
 
+magicWordSearc:  Search for magic words / strings in binaries, and then will
+dump the surrounding bytes for inspection
+
 # Scripts
 
 fix_khugepaged.sh:  Using VMWare on Ubuntu 14.04 or 16.04, and it starts to get
