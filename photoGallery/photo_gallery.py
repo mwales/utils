@@ -65,6 +65,7 @@ if not thumbexist:
 
 # Generate the new filename for all of the files and create thumbnails
 filenameMap = {}
+filelist = sorted(filelist)
 for singleFile in filelist:
 	if os.path.isfile(singleFile) and isImageFile(singleFile):
 		hashedName = processFile(singleFile)
@@ -83,7 +84,7 @@ html.write('</head>\n')
 html.write('<html>\n')
 html.write("<body>\n\n")
 
-for orig in filenameMap:
+for orig in sorted(filenameMap.keys()):
 	hashname = filenameMap[orig]
 	os.rename(orig, hashname)
 	html.write('   <a href="' + hashname + '">\n')
