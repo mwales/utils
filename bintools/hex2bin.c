@@ -22,6 +22,14 @@ int isValidChar(char x)
    return 0;
 }
 
+int isHexPrefix(char* x)
+{
+   int retVal =  ( (x[0] == '0') && (x[1] == 'x') );
+
+   // fprintf(stderr, "isHexPrefix of %c%c = %d\n", x[0], x[1], retVal);
+   return retVal;
+}
+
 int main(int argc, char** argv)
 {
    if (argc != 2)
@@ -52,6 +60,8 @@ int main(int argc, char** argv)
       fprintf(stderr, "File opened successfully\n");
    }
 
+   int totalBytesRead = 0;
+   int totalBytesWritten = 0;
    int bytesRead;
    int i = 0;
    char buf[3];
@@ -62,7 +72,20 @@ int main(int argc, char** argv)
       if (bytesRead != 1)
          continue; // end of file
 
-      //fprintf(stderr, "Read a char (%c), i = %d, buf = %s\n", *(buf+i), i, buf);
+      totalBytesRead++;
+
+      // fprintf(stderr, "Read a char (%c), i = %d, buf = %s\n", *(buf+i), i, buf);
+
+      if (i == 1)
+      {
+         // fprintf(stderr, "2 char = %c%c\n", buf[0], buf[1]);
+
+         if (isHexPrefix(buf))
+         {
+            i = 0;
+            continue;
+         }
+      }
 
       if (isValidChar( *(buf + i)) )
       {
@@ -78,6 +101,7 @@ int main(int argc, char** argv)
 
             //fprintf(stderr, "Outputting 1 byte\n");
 
+            totalBytesWritten++;
             printf("%c", val2);
 
             i = 0;
@@ -89,8 +113,12 @@ int main(int argc, char** argv)
    if (inputFd != 0)
    {
       // Must have been an actual file that was opened
+      fprintf(stderr, "File closed\n");
       close(inputFd);
    }
+
+   fprintf(stderr, "Total bytes (hex) read  = %d\n", totalBytesRead);
+   fprintf(stderr, "Total bytes (bin) wrote = %d\n", totalBytesWritten);
 
    return 0;
 }
