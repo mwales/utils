@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 	int currentOutputFile = 0;
 	int curByteInBlock = 0;
 	int totalBytesRead = 0;
-	while(true)	
+	while(1)	
 	{
 		char curByte;
 		if (1 != read(inputFileFd, &curByte, 1) )
