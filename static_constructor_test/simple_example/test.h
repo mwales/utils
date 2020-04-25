@@ -9,6 +9,6 @@ void registrationHandler(std::string name);
 		public: \
 			className(); \
 	}; \
-	static className className_instance; \
+	static className className ## _instance; \
 	className::className() \
 
