@@ -22,22 +22,35 @@ int main(int argc, char** argv)
 	UrlDecoded* decodedUrl = decodeUrl(argv[1], &success);
 
 	printf("Success = %s\n", success ? "true" : "false");
-	if (success)
+	if (!success)
 	{
-		printf("Protocol = %s\n", decodedUrl->protocol);
-		printf("Port = %d\n", decodedUrl->portNumber);
-		printf("Web Host = %s\n", decodedUrl->webHost);
-		printf("Filepath = %s\n", decodedUrl->filePath);
-		freeUrlDecoded(decodedUrl);
+		printf("Couldn't properly decode protcol\n");
+		return 99;
 	}
 
+	printf("Protocol = %s\n", decodedUrl->protocol);
+	printf("Port = %d\n", decodedUrl->portNumber);
+	printf("Web Host = %s\n", decodedUrl->webHost);
+	printf("Filepath = %s\n", decodedUrl->filePath);
+	
+
 	int bufLenAndBytesRx = BIG_BUFFER_LEN;
-	int errCode = httpRequest(argv[1], 80, bigBuf, &bufLenAndBytesRx);
+	int errCode;
+	if (strcmp(decodedUrl->protocol, "http") == 0)
+	{
+		errCode = httpRequest(argv[1], 80, bigBuf, &bufLenAndBytesRx);
+	}
+	else
+	{
+		errCode = httpsRequest(argv[1], 443, bigBuf, &bufLenAndBytesRx);
+	}
 
 	printf("Error code = %d\n", errCode);
 	printf("Bytes asked for / received = %d\n", bufLenAndBytesRx);
 	printf("Response:\n");
 	printf("%s\n", bigBuf);
+	
+	freeUrlDecoded(decodedUrl);
 
 	return 0;
 }
