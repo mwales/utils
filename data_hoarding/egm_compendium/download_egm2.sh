@@ -1,5 +1,48 @@
 #!/bin/bash
 
+# Just like download EGM script except we have to change the link a little bit that we download from
+
+#set_file_extension(filepath, file_ext) 
+set_file_extension() {
+	filepath=$1
+	file_ext=$2
+
+	cur_basename=$(basename $filepath)
+	ext_strip_basename=$(basename -s $file_ext $filepath)
+
+	echo "Cur basename = $cur_basename"
+	echo "Strip basename = $ext_strip_basename"
+
+	if [[ $cur_basename == $ext_strip_basename ]]; then
+		echo "Adding $file_ext to $filepath"
+		mv $filepath ${filepath}${file_ext}
+	else
+		echo "File $filepath already has the correct extension"
+	fi
+}
+
+
+#def detect_and_set_file_ext(dir_name) {
+detect_and_set_file_ext() {
+	for x in $(find $1 -type f -exec echo {} \;); do
+		echo $x
+		is_zip_file=$(file $x | grep "Zip archive data" | wc -l)
+		is_html_file=$(file $x | grep "HTML document" | wc -l)
+		
+		if [ $is_zip_file -eq "1" ]; then
+			echo "$x is a zip file"
+			set_file_extension $x .zip
+		fi
+
+		if [ $is_html_file -eq "1" ]; then
+			echo "$x is a html file"
+			set_file_extension $x .html
+		fi
+
+	done
+}
+
+
 # wget ocommand didn't work
 #wget --load-cookies netscape_cookies.txt --keep-session-cookies --content-disposition -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36" "https://egmcompendium.com/publications/egm/egm-031"
 
@@ -26,7 +69,7 @@ download_single_issue() {
 		mkdir $issue
 	fi
 
-	issue_index_path="https://egmcompendium.com/publications/egm/$issue/"
+	issue_index_path="https://egmcompendium.com/publications/egm2/$issue/"
 
 	download_link $issue $issue_index_path
 
@@ -38,6 +81,8 @@ download_single_issue() {
 		download_link $issue $line
 		sleep 25
 	done < <(cat $issue/* | grep -oE 'https.*wpdmdl=[0-9]*' | sort | uniq)
+
+	detect_and_set_file_ext $issue
 }
 
 # download_multiple_issues(start, stop)
@@ -47,7 +92,7 @@ download_multiple_issues() {
 	stop_num=$2
 	for n in $(seq -f "%03g" $start_num $stop_num); do
 		echo "Starting download of issue $n"
-	download_single_issue egm-$n
+	download_single_issue egm2-$n
 	sleep 30
 	done
 }
@@ -60,10 +105,13 @@ check_cookie_file() {
 	fi
 }
 
+
+
+
 if [ $# -eq "1" ]; then
 	echo "Single Issue Download"
 	check_cookie_file
-	download_single_issue egm-$1
+	download_single_issue egm2-$1
 	exit 0
 fi
 
@@ -83,7 +131,6 @@ echo "Step 4 - Run this script"
 echo "Ways to run the script:"
 echo "Download single issue: ./download_issues.sh 001"
 echo "Download range of issues: ./download_issues.sh 001 295"
-
 
 
 
